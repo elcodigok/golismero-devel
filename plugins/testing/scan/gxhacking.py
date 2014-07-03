@@ -25,18 +25,23 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 from golismero.api.config import Config
 from golismero.api.data import discard_data
 from golismero.api.data.information.fingerprint import WebServerFingerprint
+from golismero.api.data.information.html import HTML
 from golismero.api.data.resource.url import FolderURL, URL
 from golismero.api.data.vulnerability import UncategorizedVulnerability
 from golismero.api.data.vulnerability.information_disclosure.url_disclosure import UrlDisclosure
 from golismero.api.logger import Logger
 from golismero.api.net.http import HTTP
-from golismero.api.net.web_utils import ParsedURL, urljoin, get_error_page
+from golismero.api.net.web_utils import ParsedURL, urljoin, get_error_page, download
 from golismero.api.text.matching_analyzer import MatchingAnalyzer, get_diff_ratio
 from golismero.api.text.wordlist import WordListLoader
 
 from golismero.api.plugin import TestingPlugin
 from functools import partial
 
+try:
+    from xml.etree import cElementTree as ET
+except ImportError:
+    from xml.etree import ElementTree as ET
 
 __doc__ = """
 
@@ -96,6 +101,21 @@ class PredictablesDisclosureBruteforcer(TestingPlugin):
                 server_canonical_name = webserver_finger.canonical_name
                 servers_related = webserver_finger.related  # Set with related web servers
 
+        new_file = []
+        for file_name in ['execute.xml', 'DeveloperMenu.xml']:
+            url_check = m_url[1:] if m_url.startswith("/") else m_url
+            tmp_u = urljoin(url_check, file_name)
+            p = HTTP.get_url(tmp_u, use_cache=False, method="GET")
+            if p.status == "200":
+                file_save = download(tmp_u)
+                tree = ET.fromstring(file_save.raw_data)
+                try:
+                    for links in tree.findall('Object'):
+                        Logger.log(links.find('ObjLink').text)
+                        new_file.append(links.find('ObjLink').text)
+                except Exception:
+                    ##raise # XXX DEBUG
+                    pass
 
         wordlist = set()
 
@@ -131,11 +151,22 @@ class PredictablesDisclosureBruteforcer(TestingPlugin):
 
         # Load content of wordlists
         urls = set()
-        #m_urls_update = urls.add
+        #Logger.log(urls)
+
+        for l_w in new_file:
+            try:
+                l_w = l_w[1:] if l_w.startswith("/") else l_w
+                tmp_u = urljoin(m_url, l_w)
+            except ValueError, e:
+                Logger.log_error("Failed to parse key, from wordlist, '%s'" % tmp_u)
+                continue
+
+            urls.add(tmp_u)
 
         for l_w in wordlist:
             # Use a copy of wordlist to avoid modify the original source
             l_loaded_wordlist = WordListLoader.get_wordlist_as_list(l_w)
+            #Logger.log(dir(l_loaded_wordlist))
 
             for l_wo in l_loaded_wordlist:
                 try:
@@ -145,7 +176,6 @@ class PredictablesDisclosureBruteforcer(TestingPlugin):
                     Logger.log_error("Failed to parse key, from wordlist, '%s'" % tmp_u)
                     continue
 
-                #Logger.log(tmp_u)
                 urls.add(tmp_u)
 
         Logger.log_verbose("Loaded %s URLs to test." % len(urls))
@@ -173,7 +203,6 @@ class PredictablesDisclosureBruteforcer(TestingPlugin):
             _f((i, l_url))
 
         # Generate and return the results.
-        #Logger.log(store_info.unique_texts)
         return generate_results(store_info.unique_texts)
 
 
