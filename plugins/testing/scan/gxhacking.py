@@ -25,8 +25,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 from golismero.api.config import Config
 from golismero.api.data import discard_data
 from golismero.api.data.information.fingerprint import WebServerFingerprint
-#from golismero.api.data.information.html import HTML
-#from golismero.api.data.resource.url import FolderURL, URL
 from golismero.api.data.resource.url import URL
 from golismero.api.data.vulnerability import UncategorizedVulnerability
 from golismero.api.data.vulnerability.information_disclosure.url_disclosure import UrlDisclosure
@@ -141,7 +139,6 @@ class PredictablesDisclosureBruteforcer(TestingPlugin):
         for l_w in wordlist:
             # Use a copy of wordlist to avoid modify the original source
             l_loaded_wordlist = WordListLoader.get_wordlist_as_list(l_w)
-            #Logger.log(dir(l_loaded_wordlist))
 
             for l_wo in l_loaded_wordlist:
                 try:
@@ -237,10 +234,6 @@ def process_url(risk_level, method, matcher, updater_func, total_urls, url):
             except Exception, e:
                 Logger.log_error_more_verbose("Error while processing: '%s': %s" % (url, str(e)))
 
-        # Append for analyze and display info if is accepted
-        #if matcher.analyze(p.raw_response, url=url, risk=risk_level):
-            #Logger.log_more_verbose("Discovered partial url: '%s'" % url)
-        #Logger.log(url)
         Logger.log(matcher.analyze(p.raw_response, url=url, risk=0.62))
         Logger.log_more_verbose("Discovered partial url: '%s'" % url)
 
@@ -312,14 +305,14 @@ def generate_results(unique_texts):
     # Analyze resutls
     m_results        = []
     m_results_append = m_results.append
-    kwargs = {"level": "informational"}
+    #kwargs = {"level": "informational"}
 
     for l_match in unique_texts:
         #
         # Set disclosure vulnerability
         l_url                      = URL(l_match.url)
-        #l_vuln                     = UrlDisclosure(l_url)
-        l_vuln                     = UncategorizedVulnerability(l_url, **kwargs)
+        l_vuln                     = UrlDisclosure(l_url)
+        #l_vuln                     = UncategorizedVulnerability(l_url, **kwargs)
 
         # Set impact
         l_vuln.risk                = l_match.risk
