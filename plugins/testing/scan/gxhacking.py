@@ -74,21 +74,8 @@ class PredictablesDisclosureBruteforcer(TestingPlugin):
                 server_canonical_name = webserver_finger.canonical_name
                 servers_related = webserver_finger.related  # Set with related web servers
 
-        new_file = []
-        for file_name in ['execute.xml', 'DeveloperMenu.xml']:
-            url_check = m_url[1:] if m_url.startswith("/") else m_url
-            tmp_u = urljoin(url_check, file_name)
-            p = HTTP.get_url(tmp_u, use_cache=False, method="GET")
-            if p.status == "200":
-                file_save = download(tmp_u)
-                tree = ET.fromstring(file_save.raw_data)
-                try:
-                    for links in tree.findall('Object'):
-                        Logger.log(links.find('ObjLink').text)
-                        new_file.append(links.find('ObjLink').text)
-                except Exception:
-                    ##raise # XXX DEBUG
-                    pass
+        # Find XML files
+        new_file = find_xml_files(m_url)
 
         wordlist = set()
 
@@ -176,6 +163,27 @@ class PredictablesDisclosureBruteforcer(TestingPlugin):
 
         # Generate and return the results.
         return generate_results(store_info.unique_texts)
+
+
+#------------------------------------------------------------------------------
+def find_xml_files(url):
+    new_file = []
+    for file_name in ['execute.xml', 'DeveloperMenu.xml']:
+        url_check = url[1:] if url.startswith("/") else url
+        tmp_u = urljoin(url_check, file_name)
+        p = HTTP.get_url(tmp_u, use_cache=False, method="GET")
+        if p.status == "200":
+            file_save = download(tmp_u)
+            tree = ET.fromstring(file_save.raw_data)
+            try:
+                for links in tree.findall('Object'):
+                    Logger.log(links.find('ObjLink').text)
+                    new_file.append(links.find('ObjLink').text)
+            except Exception:
+                ##raise # XXX DEBUG
+                pass
+    
+    return new_file
 
 
 #------------------------------------------------------------------------------
