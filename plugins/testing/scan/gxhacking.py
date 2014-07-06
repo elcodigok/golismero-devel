@@ -44,7 +44,7 @@ except ImportError:
 
 
 #------------------------------------------------------------------------------
-class PredictablesDisclosureBruteforcer(TestingPlugin):
+class PredictablesDisclosureGXHacking(TestingPlugin):
 
 
     #--------------------------------------------------------------------------

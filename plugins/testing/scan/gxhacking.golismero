@@ -10,7 +10,7 @@ License     = GNU Public License v2
 
 [Core]
 Module = gxhacking.py
-Class  = PredictablesDisclosureBruteforcer
+Class  = PredictablesDisclosureGXHacking
 
 [common]
 w2 = fuzzdb/Discovery/PredictableRes/Genexus.fuzz.txt
