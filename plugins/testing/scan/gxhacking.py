@@ -37,6 +37,8 @@ from golismero.api.text.wordlist import WordListLoader
 from golismero.api.plugin import TestingPlugin
 from functools import partial
 
+import re
+
 try:
     from xml.etree import cElementTree as ET
 except ImportError:
@@ -75,7 +77,8 @@ class PredictablesDisclosureGXHacking(TestingPlugin):
                 servers_related = webserver_finger.related  # Set with related web servers
 
         # Find XML files
-        new_file = find_xml_files(m_url)
+        #new_file = find_xml_files(m_url)
+        new_file = find_xml_files(m_url) + find_htm_file(m_url)
 
         wordlist = set()
 
@@ -182,6 +185,20 @@ def find_xml_files(url):
             except Exception:
                 ##raise # XXX DEBUG
                 pass
+    
+    return new_file
+
+
+#------------------------------------------------------------------------------
+def find_htm_file(url):
+    new_file = []
+    for file_name in ['DeveloperMenu.htm']:
+        url_check = url[1:] if url.startswith("/") else url
+        tmp_u = urljoin(url_check, file_name)
+        p = HTTP.get_url(tmp_u, use_cache=False, method="GET")
+        if p.status == "200":
+            file_save = download(tmp_u)
+            new_file = re.findall(r'href=[\'"]?([^\'" >]+)', file_save.raw_data)
     
     return new_file
 
