@@ -1,0 +1,16 @@
+[Documentation]
+Name        = GXHacking - GeneXus Web Hacking
+Description = Tries to discover hidden folders and files:
+              www.site.com/DeveloperMenu.htm -> www.site.com/hgx0010.aspx ...
+Author      = Ing. Daniel Maldonado
+Version     = 0.1
+Website     = http://caceriadespammers.blogspot.com
+Copyright   = Copyright (C) 2011-2014 GoLismero Project
+License     = GNU Public License v2
+
+[Core]
+Module = gxhacking.py
+Class  = PredictablesDisclosureGXHacking
+
+[common]
+w2 = fuzzdb/Discovery/PredictableRes/Genexus.fuzz.txt
